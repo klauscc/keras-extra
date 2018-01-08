@@ -67,8 +67,9 @@ class TfRecordEvalCallback(Callback):
 
 
         """
-        self.csv_file = open(self._log_save_path, 'w')
-        self.csv_file.write('epoch,loss,accuracy,val_loss,val_accurary\n')
+        if self._log_save_path:
+            self.csv_file = open(self._log_save_path, 'w')
+            self.csv_file.write('epoch,loss,accuracy,val_loss,val_accurary\n')
 
     def on_epoch_end(self, epoch, logs={}):
         """evaluate the model and save the checkpoint and log on epoch end
@@ -84,11 +85,13 @@ class TfRecordEvalCallback(Callback):
         # update logs
         logs.update({'epoch': epoch})
         logs.update(result)
-        self.csv_file.write(
-            '{epoch:02d},{loss:.5f},{acc:.5f},{val_loss:.5f},{val_acc:.5f}\n'.
-            format(**logs))
+        if self._log_save_path:
+            self.csv_file.write(
+                '{epoch:02d},{loss:.5f},{acc:.5f},{val_loss:.5f},{val_acc:.5f}\n'.
+                format(**logs))
         print(
             '\nepoch: {epoch:02d},loss: {loss:.5f},acc: {acc:.5f},val_loss: {val_loss:.5f},val_acc: {val_acc:.5f}\n{class_report}\n{cm}\n'.
             format(**logs))
         #save checkpoint
-        self._model.save_weights(self._checkpoint_save_path.format(**logs))
+        if self._checkpoint_save_path:
+            self._model.save_weights(self._checkpoint_save_path.format(**logs))

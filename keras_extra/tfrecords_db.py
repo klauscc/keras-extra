@@ -58,10 +58,10 @@ class TfRecordDB(object):
 
         self.broken_images = {}
 
-        if self._post_processors != None:
-            assert isinstance(
-                self._post_processors, (list, tuple, types.FunctionType)
-            ), 'post_processors must be a function or a list of functions'
+        # if self._post_processors != None:
+        # assert isinstance(
+        # self._post_processors, (list, tuple, types.FunctionType)
+        # ), 'post_processors must be a function or a list of functions'
 
     def get_input_shape(self):
         """return the input shape
@@ -201,6 +201,7 @@ class TfRecordDB(object):
                 # Serialize to string and write on the file
                 writer.write(example.SerializeToString())
             except Exception, e:
+                print e
                 self.broken_images.update({addrs[i]: 1})
         writer.close()
         sys.stdout.flush()

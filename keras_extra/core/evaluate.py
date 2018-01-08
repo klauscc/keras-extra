@@ -15,7 +15,7 @@ import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, log_loss
 
 
-def evaluate(model, record_db, batch_size):
+def evaluate(model, record_db, batch_size, verbose=0):
     """evaluate model
 
     Args:
@@ -45,6 +45,8 @@ def evaluate(model, record_db, batch_size):
         labels.append(label)
         batch_labels.append(label)
         if len(batch_imgs) == batch_size:
+            if verbose and len(pred_y) % (30 * batch_size) == 0:
+                print('predicting {}th img...'.format(len(pred_y)))
             batch_pred_y = _pred_batch(batch_imgs, batch_labels)
             pred_y.extend(batch_pred_y)
             batch_imgs = []
