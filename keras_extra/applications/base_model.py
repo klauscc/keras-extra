@@ -87,11 +87,11 @@ class BaseModel(object):
 
         """
 
-        train_db = TfRecordDB(None, 'train', self._train_record_path,
-                              self._preprocess_input_and_output,
-                              self._num_classes, self._input_shape[0:2],
-                              self._input_shape[2])
-        val_db = TfRecordDB(None, 'val', self._val_record_path,
+        train_db = TfRecordDB(
+            self._train_label_file, 'train', self._train_record_path,
+            self._preprocess_input_and_output, self._num_classes,
+            self._input_shape[0:2], self._input_shape[2])
+        val_db = TfRecordDB(self._val_label_file, 'val', self._val_record_path,
                             self._preprocess_input_and_output,
                             self._num_classes, self._input_shape[0:2],
                             self._input_shape[2])
@@ -100,8 +100,14 @@ class BaseModel(object):
 
         self._train_db = train_db
         self._val_db = val_db
-        self._input_tensor = input_tensor
-        self._output_tensor = output_tensor
+        if isinstance(input_tensor, list):
+            self._input_tensor = input_tensor
+        else:
+            self._input_tensor = [input_tensor]
+        if isinstance(output_tensor, list):
+            self._output_tensor = output_tensor
+        else:
+            self._output_tensor = [output_tensor]
 
     def _wrap_model(self):
         """wrap the model for tensorflow record
@@ -109,7 +115,9 @@ class BaseModel(object):
 
         """
         # build train model
-        model_input = keras.layers.Input(tensor=self._input_tensor)
+        model_input = []
+        for input_tensor in self._input_tensor:
+            model_input.append(keras.layers.Input(tensor=input_tensor))
         train_model = self._model(model_input)
         train_model = keras.models.Model(
             inputs=model_input, outputs=train_model)
@@ -123,7 +131,14 @@ class BaseModel(object):
         """
         return self._model.summary()
 
-    def compile(self, snapshot_save_path=None, log_save_path=None, **kwargs):
+    def compile(self,
+                train_label_file,
+                train_record_path,
+                val_label_file,
+                val_record_path,
+                snapshot_save_path=None,
+                log_save_path=None,
+                **kwargs):
         """compile the model
 
         Args:
@@ -133,6 +148,14 @@ class BaseModel(object):
         Returns: TODO
 
         """
+        self._train_label_file = train_label_file
+        self._train_record_path = train_record_path
+        self._val_label_file = val_label_file
+        self._val_record_path = val_record_path
+
+        self._prepare_db()
+        self._wrap_model()
+
         self._model.compile(**kwargs)
         self._train_model.compile(target_tensors=self._output_tensor, **kwargs)
 
@@ -140,8 +163,6 @@ class BaseModel(object):
         self._log_save_path = log_save_path
 
     def fit(self,
-            train_record_path,
-            val_record_path,
             epochs=1,
             verbose=1,
             callbacks=None,
@@ -164,11 +185,6 @@ class BaseModel(object):
         Returns: TODO
 
         """
-        self._train_record_path = train_record_path
-        self._val_record_path = val_record_path
-
-        self._prepare_db()
-        self._wrap_model()
 
         sess = keras.backend.get_session()
         evaluate_callback = TfRecordEvalCallback(
