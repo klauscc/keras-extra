@@ -32,7 +32,7 @@ class VGG16(BaseModel):
         model_input = keras.layers.Input(self._input_shape)
         base_model = vgg16.VGG16(input_tensor=model_input, include_top=False)
         x = base_model.output
-        x = keras.layers.Flatten()(x)
+        x = keras.layers.GlobalAveragePooling2D()(x)
         x = keras.layers.Dense(
             self._num_classes, activation='softmax', name='global_cls')(x)
         model = keras.models.Model(inputs=base_model.input, outputs=x)
