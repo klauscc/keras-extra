@@ -69,11 +69,17 @@ class TfRecordEvalCallback(Callback):
         """
         if self._checkpoint_save_path:
             directory = os.path.dirname(self._checkpoint_save_path)
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except:
+                pass
 
         if self._log_save_path:
             directory = os.path.dirname(self._log_save_path)
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except:
+                pass
             self.csv_file = open(self._log_save_path, 'w')
             self.csv_file.write('epoch,loss,accuracy,val_loss,val_accurary\n')
 

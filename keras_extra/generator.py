@@ -166,7 +166,6 @@ class LabelFileIterator(Iterator):
         for image_index, image in enumerate(image_group):
             image_batch[image_index, :image.shape[0], :image.shape[1], :
                         image.shape[2]] = image
-
         return image_batch, label_batch
 
     def next(self):
